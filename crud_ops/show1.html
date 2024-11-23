@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CommunityShare Data</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .card {
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .card:hover {
+            transform: scale(1.02);
+        }
+        .card-img-top {
+            height: 200px;
+            object-fit: cover;
+        }
+        .add-button {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar navbar-expand-lg bg-body-tertiary">
+        <div class="container-fluid">
+          <!-- <div class="container-fluid">
+                    <a class="navbar-brand" href="#">
+                      <i class="fa-regular fa-handshake"></i>
+                      Community Share
+                    </a>
+                  </div> -->
+          <!-- <i class="fa-regular fa-handshake"></i>  -->
+          <a class="navbar-brand" href="../index.html">
+            <img src="../imgs/logo_hands.jpg" alt="" style="inline-size: 5rem;">
+            Community Share</a>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+          </button>
+          <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+              <li class="nav-item">
+                <a class="nav-link " aria-current="page" href="index1.html">Add product</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="show1.html">Show products</a>
+              </li>
+            </li>
+            <li><a class="nav-link" href="../T&C.html">Terms and Conditions</a></li>
+            
+              <!-- <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  Dropdown
+                </a>
+                <ul class="dropdown-menu">
+                  <li><a class="dropdown-item" href="#">Action</a></li>
+                  <li><a class="dropdown-item" href="#">Another action</a></li>
+                  <li>
+                    <hr class="dropdown-divider">
+                </ul>      
+              </li> -->
+              <!-- <li class="nav-item">
+                    <a class="nav-link disabled" aria-disabled="true">Disabled</a>
+                  </li> -->
+            </ul>
+            <!-- <li class="nav-item" style="list-style: none; margin-right: 1rem;">
+              <a class="nav-link" href="../login.html">
+                <button id="signInButton"> Login </button>
+              </a>
+            </li>
+            <li class="nav-item" style="list-style: none;">
+              <a class="nav-link" href=""><button id="logout">Logout</button></a>
+            </li> -->
+            <form class="d-flex" role="search" onsubmit="event.preventDefault();">
+                <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search" id="searchInput">
+                <button class="btn btn-outline-success" type="button" id="searchButton">Search</button>
+            </form>
+    
+          </div>
+        </div>
+      </nav>
+
+    <div class="container mt-5">
+        <h2 class="mb-4">Community Share Items</h2>
+        <div class="row row-cols-1 row-cols-md-3 g-4" id="cards-container">
+            <!-- Cards will be inserted here by JavaScript -->
+        </div>
+    </div>
+    
+    <!-- Add button to create new items -->
+    <a href="index1.html" class="btn btn-primary add-button">
+        <i class="fas fa-plus"></i> Add New Item
+    </a>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+        import { getFirestore, getDocs, collection } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+    
+        const firebaseConfig = {
+            apiKey: "AIzaSyDg7Rm8VDU3B82mavkg2XpiUPejF2HnyXc",
+            authDomain: "communityshare-20a2b.firebaseapp.com",
+            databaseURL: "https://communityshare-20a2b-default-rtdb.firebaseio.com",
+            projectId: "communityshare-20a2b",
+            storageBucket: "communityshare-20a2b.firebasestorage.app",
+            messagingSenderId: "7335376772",
+            appId: "1:7335376772:web:813affd59a49c10c8c8fd1",
+            measurementId: "G-KEP46BGPZ3"
+        };
+    
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+    
+        // Store all items globally for search functionality
+        let allItems = [];
+    
+        async function fetchData() {
+            try {
+                const querySnapshot = await getDocs(collection(db, 'EmployeeSet'));
+                allItems = querySnapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                }));
+                displayFilteredData(allItems);
+            } catch (error) {
+                console.error("Error fetching documents: ", error);
+                const cardsContainer = document.getElementById('cards-container');
+                cardsContainer.innerHTML = '<div class="col-12 text-center"><p>Error loading items.</p></div>';
+            }
+        }
+    
+        function displayFilteredData(items) {
+            const cardsContainer = document.getElementById('cards-container');
+            cardsContainer.innerHTML = '';
+    
+            if (items.length === 0) {
+                cardsContainer.innerHTML = '<div class="col-12 text-center"><p>No items found.</p></div>';
+                return;
+            }
+    
+            items.forEach(item => {
+                const card = createCard(item, item.id);
+                cardsContainer.appendChild(card);
+            });
+        }
+    
+        function createCard(data, id) {
+            const cardDiv = document.createElement('div');
+            cardDiv.className = 'col';
+            cardDiv.innerHTML = `
+                <div class="card h-100" onclick="window.location.href='details.html?id=${id}'">
+                    <img src="${data.imagelink || 'https://via.placeholder.com/150'}" 
+                         class="card-img-top" 
+                         alt="${data.title}"
+                         onerror="this.src='https://via.placeholder.com/150'">
+                    <div class="card-body">
+                        <h5 class="card-title">${data.title || 'No Title'}</h5>
+                        <h6 class="card-subtitle mb-2 text-muted">${data.type || 'No Type'}</h6>
+                        <p class="card-text small">${data.description ? data.description.substring(0, 100) + '...' : 'No description'}</p>
+                    </div>
+                </div>
+            `;
+            return cardDiv;
+        }
+    
+        function searchItems(searchTerm) {
+            searchTerm = searchTerm.toLowerCase().trim();
+            
+            if (!searchTerm) {
+                displayFilteredData(allItems);
+                return;
+            }
+    
+            const filteredItems = allItems.filter(item => {
+                return (
+                    (item.title && item.title.toLowerCase().includes(searchTerm)) ||
+                    (item.type && item.type.toLowerCase().includes(searchTerm)) ||
+                    (item.description && item.description.toLowerCase().includes(searchTerm))
+                );
+            });
+    
+            displayFilteredData(filteredItems);
+        }
+    
+        // Event Listeners
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchData();
+    
+            // Search input event listener
+            const searchInput = document.getElementById('searchInput');
+            const searchButton = document.getElementById('searchButton');
+    
+            // Search on button click
+            searchButton.addEventListener('click', () => {
+                searchItems(searchInput.value);
+            });
+    
+            // Search on enter key press
+            searchInput.addEventListener('keyup', (e) => {
+                if (e.key === 'Enter') {
+                    searchItems(searchInput.value);
+                }
+            });
+    
+            // Real-time search (optional - uncomment if you want real-time search)
+            // searchInput.addEventListener('input', (e) => {
+            //     searchItems(e.target.value);
+            // });
+        });
+    </script>
+    
+    <!-- Add Font Awesome for icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+</body>
+</html>

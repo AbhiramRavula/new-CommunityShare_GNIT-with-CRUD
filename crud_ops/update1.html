@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Update Data</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .custom-type {
+            display: none;
+        }
+        .description-field {
+            min-height: 100px;
+            resize: vertical;
+        }
+        .form-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .btn-group {
+            gap: 10px;
+        }
+    </style>
+</head>
+<body class="bg-light">
+    <div class="container form-container">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h2 class="mb-0">Update Data</h2>
+            </div>
+            <div class="card-body">
+                <form id="updateForm" class="needs-validation" novalidate>
+                    <div class="mb-3">
+                        <label for="TitleInp" class="form-label">Title</label>
+                        <input type="text" class="form-control" id="TitleInp" required>
+                        <div class="invalid-feedback">
+                            Please enter a title.
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="DescInp" class="form-label">Description</label>
+                        <textarea class="form-control description-field" id="DescInp" required></textarea>
+                        <div class="invalid-feedback">
+                            Please enter a description.
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="AddrInp" class="form-label">Address</label>
+                        <input type="text" class="form-control" id="AddrInp" required>
+                        <div class="invalid-feedback">
+                            Please enter an address.
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="ImgLinkInp" class="form-label">Image Link</label>
+                        <input type="text" class="form-control" id="ImgLinkInp" required>
+                        <div class="invalid-feedback">
+                            Please enter an image link.
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="TypeInp" class="form-label">Type</label>
+                        <select class="form-select" id="TypeInp" required>
+                            <option value="Electronics">Electronics</option>
+                            <option value="Furniture">Furniture</option>
+                            <option value="Cutlery">Cutlery</option>
+                            <option value="Vehicle">Vehicle</option>
+                            <option value="Others">Others</option>
+                            <option value="Custom">Custom</option>
+                        </select>
+                        <div class="invalid-feedback">
+                            Please select a type.
+                        </div>
+                    </div>
+
+                    <div id="CustomTypeDiv" class="custom-type mb-3">
+                        <label for="CustomTypeInp" class="form-label">Custom Type</label>
+                        <input type="text" class="form-control" id="CustomTypeInp">
+                        <div class="invalid-feedback">
+                            Please enter a custom type.
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="CnicInp" class="form-label">CNIC No</label>
+                        <input type="number" class="form-control" id="CnicInp" disabled>
+                    </div>
+
+                    <div class="d-flex btn-group">
+                        <button type="button" class="btn btn-primary" id="UpdBtn">Update</button>
+                        <button type="button" class="btn btn-danger" id="DelBtn">Delete</button>
+                        <a href="show1.html" class="btn btn-secondary">Back</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+        import { getFirestore, doc, getDoc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDg7Rm8VDU3B82mavkg2XpiUPejF2HnyXc",
+            authDomain: "communityshare-20a2b.firebaseapp.com",
+            databaseURL: "https://communityshare-20a2b-default-rtdb.firebaseio.com",
+            projectId: "communityshare-20a2b",
+            storageBucket: "communityshare-20a2b.firebasestorage.app",
+            messagingSenderId: "7335376772",
+            appId: "1:7335376772:web:813affd59a49c10c8c8fd1",
+            measurementId: "G-KEP46BGPZ3"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        const TitleInp = document.getElementById('TitleInp');
+        const DescInp = document.getElementById('DescInp');
+        const AddrInp = document.getElementById('AddrInp');
+        const ImgLinkInp = document.getElementById('ImgLinkInp');
+        const TypeInp = document.getElementById('TypeInp');
+        const CustomTypeDiv = document.getElementById('CustomTypeDiv');
+        const CustomTypeInp = document.getElementById('CustomTypeInp');
+        const CnicInp = document.getElementById('CnicInp');
+        const form = document.getElementById('updateForm');
+
+        const UpdBtn = document.getElementById('UpdBtn');
+        const DelBtn = document.getElementById('DelBtn');
+
+        // Get the document ID from the query parameter
+        const urlParams = new URLSearchParams(window.location.search);
+        const id = urlParams.get('id');
+
+        function validateForm() {
+            if (!form.checkValidity()) {
+                form.classList.add('was-validated');
+                return false;
+            }
+            return true;
+        }
+
+        // Fetch the data for the given ID and populate the form
+        async function fetchData() {
+            const docRef = doc(db, 'EmployeeSet', id);
+            try {
+                const docSnap = await getDoc(docRef);
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    TitleInp.value = data.title;
+                    DescInp.value = data.description;
+                    AddrInp.value = data.address;
+                    ImgLinkInp.value = data.imagelink;
+                    TypeInp.value = data.type === 'Electronics' || data.type === 'Furniture' || 
+                                  data.type === 'Cutlery' || data.type === 'Vehicle' || 
+                                  data.type === 'Others' ? data.type : 'Custom';
+                    if (TypeInp.value === 'Custom') {
+                        CustomTypeDiv.style.display = 'block';
+                        CustomTypeInp.value = data.type;
+                    }
+                    CnicInp.value = id;
+                } else {
+                    alert("No such document!");
+                    window.location.href = 'show1.html';
+                }
+            } catch (error) {
+                alert("Error fetching document: " + error.message);
+                window.location.href = 'show1.html';
+            }
+        }
+
+        function getTypeValue() {
+            return TypeInp.value === 'Custom' ? CustomTypeInp.value : TypeInp.value;
+        }
+
+        async function UpdateData() {
+            if (!validateForm()) return;
+
+            const docRef = doc(db, 'EmployeeSet', id);
+            try {
+                await updateDoc(docRef, {
+                    title: TitleInp.value,
+                    description: DescInp.value,
+                    address: AddrInp.value,
+                    imagelink: ImgLinkInp.value,
+                    type: getTypeValue()
+                });
+                alert("Data Updated successfully");
+                window.location.href = 'show1.html';
+            } catch (error) {
+                alert("Unsuccessful: " + error.message);
+            }
+        }
+
+        async function DeleteData() {
+            if (confirm("Are you sure you want to delete this record?")) {
+                const docRef = doc(db, 'EmployeeSet', id);
+                try {
+                    await deleteDoc(docRef);
+                    alert("Data Deleted successfully");
+                    window.location.href = 'show1.html';
+                } catch (error) {
+                    alert("Unsuccessful: " + error.message);
+                }
+            }
+        }
+
+        TypeInp.addEventListener('change', () => {
+            if (TypeInp.value === 'Custom') {
+                CustomTypeDiv.style.display = 'block';
+                CustomTypeInp.required = true;
+            } else {
+                CustomTypeDiv.style.display = 'none';
+                CustomTypeInp.required = false;
+                CustomTypeInp.value = '';
+            }
+        });
+
+        UpdBtn.addEventListener('click', UpdateData);
+        DelBtn.addEventListener('click', DeleteData);
+
+        // Fetch and display the data when the page loads
+        window.onload = fetchData;
+    </script>
+</body>
+</html>
